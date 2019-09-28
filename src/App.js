@@ -11,7 +11,7 @@ class App extends Component {
     this.state = {
       realData: [],
       realData2: [],
-      day: 0,
+      day: 1,
       // To avoid unnecessary update keep all options in the state.
       chartOptions: {
         title: {
@@ -71,8 +71,8 @@ class App extends Component {
     if(i === 20)
       return 
     else {
-      //axios.get(`http://10.100.50.142:8080/api/getRealData?time=${1}&day=${day}`)
-      axios.get(`https://reqres.in/api/users/2`)
+      axios.get(`http://192.168.43.2:8080/api/getRealData?time=${i}&day=${day}`)
+      //axios.get(`https://reqres.in/api/users/2`)
       .then(res => {
         var data = []
         //data = res.data.motionSensor;
@@ -80,10 +80,12 @@ class App extends Component {
         data2.push(1)
         data.push(Math.random()*i)
         console.log(data2)
+        for(let k = 0; k < data.length; k++)
+          data[k] = parseInt(data[k])
         this.setState({realData: data, realData2: data2}, this.updateSeries())
         //console.log(i)
         i++
-        setTimeout(function(){this.getdata(i)}.bind(this), 1000)
+        setTimeout(function(){this.getdata(i, day)}.bind(this), 1000)
       })
     }
   }
@@ -106,7 +108,7 @@ class App extends Component {
 
   recordGraph = () => {
     var day = this.state.day;
-    this.getdata(1, day)
+    this.getdata(1, '4')
   }
 
   render() {
