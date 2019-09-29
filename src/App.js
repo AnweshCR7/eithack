@@ -3,6 +3,9 @@ import { render } from 'react-dom';
 import * as Highcharts from "highcharts";
 import HighchartsReact from 'highcharts-react-official'
 import axios from 'axios'
+import ButtonAppBar from './AppBar'
+import FloatingActionButtons from './FloatingActionButtons'
+import { AppBar } from '@material-ui/core';
 
 class App extends Component {
   constructor(props) {
@@ -11,17 +14,73 @@ class App extends Component {
     this.state = {
       realData: [],
       realData2: [],
+      predictionData:[],
       day: 1,
       // To avoid unnecessary update keep all options in the state.
       chartOptions: {
-        title: {
-          text: 'Energy consumption based on motion'
+        chart: {
+          type: 'areaspline'
         },
+        title: {
+          text: 'Energy consumption based on an Activity Index (Motion, ShoppingCart-API, Reciept-API)'
+        },
+        legend: {
+          layout: 'vertical',
+          align: 'left',
+          verticalAlign: 'top',
+          x: 150,
+          y: 100,
+          floating: true,
+          borderWidth: 1,
+          backgroundColor:
+              Highcharts.defaultOptions.legend.backgroundColor || '#FFFFFF'
+      },
         xAxis: {
-          categories: [],
+          title:{
+            text: 'Time of Day'
+          },
+          categories: [''],
+        },
+        yAxis: {
+          title: {
+              text: 'Energy Consumption'
+          }
         },
         series: [
-          { data: [] }
+          { name: "Analysis", data: [] }
+        ]
+      },
+      chartOptions2: {
+        chart: {
+          type: 'areaspline'
+        },
+        title: {
+          text: 'General Energy consumption'
+        },
+        legend: {
+          layout: 'vertical',
+          align: 'left',
+          verticalAlign: 'top',
+          x: 150,
+          y: 100,
+          floating: true,
+          borderWidth: 1,
+          backgroundColor:
+              Highcharts.defaultOptions.legend.backgroundColor || '#FFFFFF'
+      },
+        xAxis: {
+          title:{
+            text: 'Time of Day'
+          },
+          categories: [''],
+        },
+        yAxis: {
+          title: {
+              text: 'Energy Consumption'
+          }
+        },
+        series: [
+          { name: "Without Awareness" ,data: [], color: "#aeb7ba" }
         ],
         plotOptions: {
           series: {
@@ -33,25 +92,45 @@ class App extends Component {
           }
         }
       },
-      chartOptions2: {
-        title: {
-          text: 'General Energy consumption'
+      chartOptionsP: {
+        chart: {
+          type: 'areaspline'
         },
+        
+        title: {
+          text: 'Energy Efficient Usage Pattern (Comparison)'
+        },
+        legend: {
+          layout: 'vertical',
+          align: 'left',
+          verticalAlign: 'top',
+          x: 150,
+          y: 100,
+          floating: true,
+          borderWidth: 1,
+          backgroundColor:
+              Highcharts.defaultOptions.legend.backgroundColor || '#FFFFFF'
+      },
         xAxis: {
-          categories: [],
+          title:{
+            text: 'Time of Day'
+          },
+          categories: [''],
+        },
+        yAxis: {
+          title: {
+              text: 'Energy Consumption'
+          }
         },
         series: [
-          { data: [] }
+          { name: 'With Awareness', data: [], color: '#00d680' },
+          { name: 'Without Awareness', data: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], color: '#ffc3c3', fillOpacity: 0.10 }
         ],
         plotOptions: {
-          series: {
-            point: {
-              events: {
-                mouseOver: this.setHoverData.bind(this)
-              }
-            }
+          areaspline: {
+              fillOpacity: 0.5
           }
-        }
+      },
       },
       hoverData: null
     };
@@ -68,24 +147,23 @@ class App extends Component {
     this.setState({ hoverData: e.target.category })
   }
   getdata = (i, day) =>{
-    if(i === 20)
+    if(i === 26)
       return 
     else {
       axios.get(`http://192.168.43.2:8080/api/getRealData?time=${i}&day=${day}`)
       //axios.get(`https://reqres.in/api/users/2`)
       .then(res => {
         var data = []
-        //data = res.data.motionSensor;
+        data = res.data.motionSensor;
         var data2 = this.state.realData2
         data2.push(1)
-        data.push(Math.random()*i)
-        console.log(data2)
+        //data.push(Math.random()*i)
+        //console.log(data2)
+        // let k = 0;
         for(let k = 0; k < data.length; k++)
           data[k] = parseInt(data[k])
-        this.setState({realData: data, realData2: data2}, this.updateSeries())
-        //console.log(i)
-        i++
-        setTimeout(function(){this.getdata(i, day)}.bind(this), 1000)
+        this.setState({realData: data, realData2: data2}, this.updateSeries());
+        setTimeout(function(){this.getdata(++i, day)}.bind(this), 1000)
       })
     }
   }
@@ -102,35 +180,75 @@ class App extends Component {
         series: [
           { data: this.state.realData2}
         ]
+      },
+      chartOptionsP: {
+        series: [
+          { name: 'Predicted', data: this.state.predictionData },
+          { name: 'General', data: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] }
+        ]
       }
     });
   }
 
   recordGraph = () => {
     var day = this.state.day;
-    this.getdata(1, '4')
+    this.getdata(1, '1')
   }
+  getdataPrediction = (i) =>{
+    if(i === 26)
+      return 
+    else {
+      //axios.get(`http://192.168.43.2:8080/api/getRealData?time=${i}&day=${day}`)
+      axios.get(`https://reqres.in/api/users/2`)
+      .then(res => {
+        var data = this.state.predictionData;
+        // for(let a = 1; a <= i; a++)
+        data.push(Math.random())
+        console.log(data)
+        this.setState({predictionData: data}, this.updateSeries())
+        //console.log(i)
+        i++
+        setTimeout(function(){this.getdataPrediction(i)}.bind(this), 2000)
+      })
+    }
+  }
+
+  playPrediction = () => {
+    var day = this.state.day;
+    this.getdataPrediction(1)
+  }
+
+
 
   render() {
     const { chartOptions, hoverData } = this.state;
 
     return (
       <div>
+        <ButtonAppBar/>
+        <br/>
         <div>
-            <HighchartsReact
-              highcharts={Highcharts}
-              options={chartOptions}
-            />
-          {/* <h3>Hovering over {hoverData}</h3> */}
-          <button onClick={this.recordGraph.bind(this)}>Record</button>
-        </div>
-        <div>
-            <HighchartsReact
-              highcharts={Highcharts}
-              options={this.state.chartOptions2}
-            />
-          {/* <h3>Hovering over {hoverData}</h3> */}
-          {/* <button onClick={this.recordGraph.bind(this)}>Record</button> */}
+          {/* <div>
+            <br/>
+          <HighchartsReact
+                highcharts={Highcharts}
+                options={this.state.chartOptionsP}
+              />
+            <FloatingActionButtons type = "play" btnClick={this.playPrediction.bind(this)}/>
+          </div> */}
+          <div>
+              <HighchartsReact
+                highcharts={Highcharts}
+                options={chartOptions}
+              />
+          </div>
+          <FloatingActionButtons type = "record" btnClick={this.recordGraph.bind(this)}/>
+          <div style={{marginTop: "5px"}}>
+              <HighchartsReact
+                highcharts={Highcharts}
+                options={this.state.chartOptions2}
+              />
+          </div>
         </div>
       </div>
     )
